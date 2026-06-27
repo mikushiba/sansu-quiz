@@ -7,7 +7,7 @@
 <meta name="description" content="たし算を テンキーで こたえるクイズ。10まで／くり上がり／20まで／2けた・3けたの たし算まで。図鑑・称号・メダルで たのしく れんしゅう。">
 <meta name="theme-color" content="#ff8a3d">
 <!-- 共有スタイル（さんすうクイズ共通の見た目） -->
-<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270400">
+<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270500">
 <style>
   /* たし算アプリ固有の追加分だけ */
   #lsel{display:grid; grid-template-columns:1fr; gap:8px;}
@@ -160,7 +160,7 @@
 </div>
 
 <!-- 共有 進捗エンジン（図鑑・称号・メダル＝算数クイズ全アプリ合算） -->
-<script src="../shared/sansu-core.js?v=202606270400"></script>
+<script src="../shared/sansu-core.js?v=202606270500"></script>
 <script>
 const $ = id => document.getElementById(id);
 
@@ -335,15 +335,9 @@ function openMedals(){ $('medalsCnt').textContent = SansuCore.medalsHead(); $('m
 
 /* ===== ホーム：レベルセレクタ ===== */
 function renderLevelSel(){
+  // 学年は トップで えらぶので、ここでは レベル一覧だけ（学年見出しは出さない）
   const seg = $('lsel'); seg.innerHTML = '';
-  let curGroup = null;
   for(const l of LEVELS){
-    if(l.group && l.group !== curGroup){           // 学年の 見出しを はさむ
-      curGroup = l.group;
-      const h = document.createElement('div');
-      h.className = 'lvl-group'; h.textContent = curGroup;
-      seg.appendChild(h);
-    }
     const b = document.createElement('button');
     b.innerHTML = l.label + '<small>' + l.desc + '</small>';
     if(l.v === level) b.classList.add('active');
