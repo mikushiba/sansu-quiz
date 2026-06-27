@@ -7,13 +7,16 @@
 <meta name="description" content="たし算を テンキーで こたえるクイズ。10まで／くり上がり／20まで／2けた・3けたの たし算まで。図鑑・称号・メダルで たのしく れんしゅう。">
 <meta name="theme-color" content="#ff8a3d">
 <!-- 共有スタイル（さんすうクイズ共通の見た目） -->
-<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270100">
+<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270200">
 <style>
   /* たし算アプリ固有の追加分だけ */
   #lsel{display:grid; grid-template-columns:1fr; gap:8px;}
   #lsel button{padding:13px 10px; font-size:1rem; text-align:left; line-height:1.3;}
   #lsel button small{display:block; font-size:.76rem; font-weight:400; color:#9a7b5e; margin-top:2px;}
   #lsel button.active small{color:#c46a23;}
+  .lvl-group{font-size:.74rem; font-weight:800; color:#b08968; letter-spacing:.04em;
+             padding:8px 4px 1px;}
+  .lvl-group:first-child{padding-top:1px;}
   .start{margin-top:18px; width:100%; border:none; border-radius:16px; padding:16px;
          font-size:1.15rem; font-weight:700; color:#fff; background:var(--accent);
          cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.12);}
@@ -149,21 +152,45 @@
 </div>
 
 <!-- 共有 進捗エンジン（図鑑・称号・メダル＝算数クイズ全アプリ合算） -->
-<script src="../shared/sansu-core.js?v=202606270100"></script>
+<script src="../shared/sansu-core.js?v=202606270200"></script>
 <script>
 const $ = id => document.getElementById(id);
 
 /* ===== レベル（学年セレクタの 算数版） ===== */
 const ri = (lo,hi)=> lo + Math.floor(Math.random()*(hi-lo+1));
+// 2けた＋1けた の生成（くり上がり あり/なし を きっちり 出しわける）
+function genD2p1(carry){
+  return ()=>{
+    const t = ri(1,9);                                   // 十のくらい
+    if(carry){ const o = ri(1,9), b = ri(10-o,9); return [t*10+o, b]; }   // 一のくらいで くり上がる
+    else     { const o = ri(0,8), b = ri(1,9-o);  return [t*10+o, b]; }   // 一のくらいは くり上がらない
+  };
+}
+// 2けた＋2けた の生成（くり上がり あり/なし を きっちり 出しわける）
+function genD2p2(carry){
+  return ()=>{
+    if(carry){
+      const oa = ri(1,9), ob = ri(10-oa,9);              // 一のくらいで くり上がる
+      const ta = ri(1,9), tb = ri(1,9);                  // 十のくらいは じゆう
+      return [ta*10+oa, tb*10+ob];
+    } else {
+      const oa = ri(0,9), ob = ri(0,9-oa);               // 一のくらい くり上がらない
+      const ta = ri(1,8), tb = ri(1,9-ta);               // 十のくらい くり上がらない（こたえは2けた）
+      return [ta*10+oa, tb*10+ob];
+    }
+  };
+}
+// レベルのはしご：くり上がりの あり/なし で 刻んで なだらかに。group＝学年見出し。
+// 単一けた（test を持つ）は 図鑑カードに たまる。多けた（gen を持つ）は ランダム生成。
 const LEVELS = [
-  // 単一けた（test を持つ）＝図鑑カードに たまるレベル
-  { v:'e10',   label:'10までの たしざん', desc:'こたえが 10までの やさしい たし算', maxDigits:2, test:(a,b)=> (a+b)<=10 },
-  { v:'carry', label:'くり上がり たし算',  desc:'こたえが 11〜18／10の かたまりで かんがえる', maxDigits:2, test:(a,b)=> (a+b)>=11 },
-  { v:'mix20', label:'20まで ミックス',    desc:'やさしい〜くり上がり まで ぜんぶ', maxDigits:2, test:(a,b)=> true },
-  // 多けた（gen を持つ）＝ランダム生成。けたが大きいので 図鑑には たまらない
-  { v:'d2p1',  label:'2けた ＋ 1けた', desc:'れい：28 ＋ 5（くり上がりも）',  maxDigits:3, gen:()=> [ri(10,99), ri(1,9)] },
-  { v:'d2p2',  label:'2けた ＋ 2けた', desc:'れい：28 ＋ 45（くり上がりも）', maxDigits:3, gen:()=> [ri(10,99), ri(10,99)] },
-  { v:'d3p3',  label:'3けた ＋ 3けた', desc:'れい：234 ＋ 158',              maxDigits:4, gen:()=> [ri(100,999), ri(100,999)] },
+  { v:'add10',  group:'1年生', label:'10までの たしざん',          desc:'こたえが 10まで（くり上がり なし）', maxDigits:2, test:(a,b)=> (a+b)<=10 },
+  { v:'carry1', group:'1年生', label:'くり上がりの たしざん',       desc:'1けた＋1けた で こたえ 11〜18',     maxDigits:2, test:(a,b)=> (a+b)>=11 },
+  { v:'mix20',  group:'1年生', label:'20まで ミックス',             desc:'1〜18 ぜんぶ（やさしい〜くり上がり）', maxDigits:2, test:(a,b)=> true },
+  { v:'d2p1n',  group:'2年生', label:'2けた ＋ 1けた（くり上がり なし）', desc:'れい：23 ＋ 4',  maxDigits:2, gen:genD2p1(false) },
+  { v:'d2p1c',  group:'2年生', label:'2けた ＋ 1けた（くり上がり あり）', desc:'れい：28 ＋ 5',  maxDigits:3, gen:genD2p1(true) },
+  { v:'d2p2n',  group:'2年生', label:'2けた ＋ 2けた（くり上がり なし）', desc:'れい：23 ＋ 45', maxDigits:2, gen:genD2p2(false) },
+  { v:'d2p2c',  group:'2年生', label:'2けた ＋ 2けた（くり上がり あり）', desc:'れい：28 ＋ 45', maxDigits:3, gen:genD2p2(true) },
+  { v:'d3p3',   group:'3年生（はってん）', label:'3けた ＋ 3けた',  desc:'れい：234 ＋ 158',  maxDigits:4, gen:()=> [ri(100,999), ri(100,999)] },
 ];
 function levelDef(v){ return LEVELS.find(l => l.v===v) || LEVELS[1]; }
 // 単一けたレベルの たし算ペア（a<=b の組）。多けたレベルは gen() を使う。
@@ -175,7 +202,7 @@ function pairsForLevel(v){
 }
 
 /* ===== 状態 ===== */
-let level = 'carry';      // 初期レベル＝くり上がり
+let level = 'carry1';     // 初期レベル＝くり上がり（1年生）
 let count = 10;           // 問題数（'all'＝ぜんぶ）
 let deck = [], answers = [], idx = 0;
 let typed = '';           // テンキーで 入力ちゅうの 数字
@@ -267,7 +294,14 @@ function openMedals(){ $('medalsCnt').textContent = SansuCore.medalsHead(); $('m
 /* ===== ホーム：レベルセレクタ ===== */
 function renderLevelSel(){
   const seg = $('lsel'); seg.innerHTML = '';
+  let curGroup = null;
   for(const l of LEVELS){
+    if(l.group && l.group !== curGroup){           // 学年の 見出しを はさむ
+      curGroup = l.group;
+      const h = document.createElement('div');
+      h.className = 'lvl-group'; h.textContent = curGroup;
+      seg.appendChild(h);
+    }
     const b = document.createElement('button');
     b.innerHTML = l.label + '<small>' + l.desc + '</small>';
     if(l.v === level) b.classList.add('active');
