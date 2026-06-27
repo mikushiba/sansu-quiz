@@ -6,8 +6,25 @@
 <title>ひき算クイズ</title>
 <meta name="description" content="ひき算を テンキーで こたえるクイズ。くり下がり／2けた・3けたの ひき算まで。10をくずすヒント・手書きメモ・育成つき。">
 <meta name="theme-color" content="#ff8a3d">
+<!-- 自動アップデート：サーバーの最新版を見て、古ければ 1回だけ 取り直す（キャッシュ対策） -->
+<script>
+(function(){
+  var BUILD='202606270600';
+  try{
+    fetch('../shared/build.txt?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.text():null;})
+      .then(function(t){
+        if(!t)return; var latest=t.trim();
+        if(latest && latest!==BUILD && sessionStorage.getItem('sansuReloaded')!==latest){
+          sessionStorage.setItem('sansuReloaded',latest);
+          var u=new URL(location.href); u.searchParams.set('_v',latest); location.replace(u.toString());
+        }
+      }).catch(function(){});
+  }catch(e){}
+})();
+</script>
 <!-- 共有スタイル（さんすうクイズ共通の見た目） -->
-<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270500">
+<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270600">
 <style>
   /* ひき算アプリ固有の追加分だけ */
   #lsel{display:grid; grid-template-columns:1fr; gap:8px;}
@@ -160,7 +177,7 @@
 </div>
 
 <!-- 共有 進捗エンジン（図鑑・称号・メダル＝算数クイズ全アプリ合算） -->
-<script src="../shared/sansu-core.js?v=202606270500"></script>
+<script src="../shared/sansu-core.js?v=202606270600"></script>
 <script>
 const $ = id => document.getElementById(id);
 
