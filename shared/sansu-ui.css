@@ -260,3 +260,16 @@
            border:2px dashed var(--accent); border-radius:12px;
            font-size:.96rem; line-height:1.7; color:#6b4a2a;}
   .fb-hint b{color:var(--accent);}
+
+  /* けいさんメモ（手書きの余白）— 多けたレベルで 出す。ノート風の うすい罫線つき */
+  .memo{margin-top:16px;}
+  .memo-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .memo-head .ml{font-size:.8rem; font-weight:700; color:#9a7b5e;}
+  .memo-head .mclear{border:1px solid var(--line); background:#fff; color:#c46a23;
+    border-radius:99px; padding:5px 12px; font-size:.76rem; font-weight:700; cursor:pointer;}
+  .memo-head .mclear:active{transform:translateY(1px);}
+  .memo canvas{
+    display:block; width:100%; height:200px; border:2px dashed var(--line); border-radius:14px;
+    background:repeating-linear-gradient(#fffdf9, #fffdf9 31px, #f1e2d0 31px, #f1e2d0 32px);
+    touch-action:none; cursor:crosshair;
+  }

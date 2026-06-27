@@ -7,7 +7,7 @@
 <meta name="description" content="たし算を テンキーで こたえるクイズ。10まで／くり上がり／20まで／2けた・3けたの たし算まで。図鑑・称号・メダルで たのしく れんしゅう。">
 <meta name="theme-color" content="#ff8a3d">
 <!-- 共有スタイル（さんすうクイズ共通の見た目） -->
-<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270200">
+<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270300">
 <style>
   /* たし算アプリ固有の追加分だけ */
   #lsel{display:grid; grid-template-columns:1fr; gap:8px;}
@@ -82,6 +82,7 @@
       <li>大きな <b>たし算</b>が 出るよ。（れい：7 ＋ 8 ＝ □）</li>
       <li><b>レベル</b>は えらべるよ：10まで／くり上がり／20まで／<b>2けた</b>＋1けた・2けた／<b>3けた</b>＋3けた。</li>
       <li><b>テンキー</b>で こたえの 数字を いれて、<b>「こたえる」</b>を おそう。けた数は レベルに あわせて ふえるよ。</li>
+      <li>2けた いじょうの レベルでは、下に <b>けいさんメモ</b>が 出るよ。ゆびや ペンで <b>ひっ算</b>を かいて かんがえよう（「けす」で きえる）。</li>
       <li>まちがえたら、<b>10の かたまり</b>の ヒントが 出るよ。</li>
       <li>つづけて 正かいすると <b>🔥コンボ</b>！</li>
       <li>正かいした たし算は <b>カードずかん</b>に たまるよ（3回で ★）。</li>
@@ -112,6 +113,13 @@
       <button type="button" class="k-clear" id="kClear">けす</button>
       <button type="button" data-d="0">0</button>
       <button type="button" class="k-enter" id="kEnter">こたえる</button>
+    </div>
+    <div class="memo" id="memo" style="display:none;">
+      <div class="memo-head">
+        <span class="ml">✏️ けいさんメモ（ゆびや ペンで かいてね）</span>
+        <button type="button" class="mclear" id="memoClear">けす</button>
+      </div>
+      <canvas id="memoCanvas"></canvas>
     </div>
     <div class="feedback" id="feedback">
       <div class="fb-head" id="fbHead"></div>
@@ -152,7 +160,7 @@
 </div>
 
 <!-- 共有 進捗エンジン（図鑑・称号・メダル＝算数クイズ全アプリ合算） -->
-<script src="../shared/sansu-core.js?v=202606270200"></script>
+<script src="../shared/sansu-core.js?v=202606270300"></script>
 <script>
 const $ = id => document.getElementById(id);
 
@@ -269,6 +277,37 @@ function playSound(name){
   }
 }
 function refreshSoundBtn(){ $('soundToggle').textContent = soundOn ? '🔊 おと ON' : '🔇 おと OFF'; }
+
+/* ===== けいさんメモ（手書きの余白）：ゆび・ペン・マウスで かける ===== */
+const memoCv = $('memoCanvas'), memoCtx = memoCv.getContext('2d');
+let memoDrawing = false, memoDpr = 1;
+function memoResize(){                                 // 表示中サイズに合わせて 解像度を そろえる（中身は消える）
+  const r = memoCv.getBoundingClientRect();
+  if(r.width === 0) return;                            // 非表示のときは なにもしない
+  memoDpr = window.devicePixelRatio || 1;
+  memoCv.width = Math.round(r.width * memoDpr);
+  memoCv.height = Math.round(r.height * memoDpr);
+  memoCtx.setTransform(memoDpr, 0, 0, memoDpr, 0, 0);
+  memoCtx.lineCap = 'round'; memoCtx.lineJoin = 'round';
+  memoCtx.lineWidth = 3; memoCtx.strokeStyle = '#4a3526';
+}
+function memoClear(){
+  memoCtx.save(); memoCtx.setTransform(1,0,0,1,0,0);
+  memoCtx.clearRect(0,0,memoCv.width,memoCv.height); memoCtx.restore();
+}
+function memoPos(e){ const r = memoCv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+memoCv.addEventListener('pointerdown', e=>{ memoDrawing = true; try{ memoCv.setPointerCapture(e.pointerId); }catch(_){}
+  const [x,y] = memoPos(e); memoCtx.beginPath(); memoCtx.moveTo(x,y); memoCtx.lineTo(x+0.1,y+0.1); memoCtx.stroke(); e.preventDefault(); });
+memoCv.addEventListener('pointermove', e=>{ if(!memoDrawing) return; const [x,y] = memoPos(e); memoCtx.lineTo(x,y); memoCtx.stroke(); e.preventDefault(); });
+memoCv.addEventListener('pointerup',   ()=> memoDrawing = false);
+memoCv.addEventListener('pointercancel',()=> memoDrawing = false);
+memoCv.addEventListener('pointerleave',()=> memoDrawing = false);
+// 多けた（1年生以外＝test を持たない）レベルだけ メモを出す。問題ごとに まっさらに。
+function setupMemo(lv){
+  const show = !levelDef(lv).test;
+  $('memo').style.display = show ? 'block' : 'none';
+  if(show){ memoResize(); memoClear(); }
+}
 
 /* ===== 画面きりかえ ===== */
 function showOnly(id){ for(const s of ['home','help','quiz','result','dex','medals']) $(s).style.display = (s===id)?'block':'none'; }
@@ -391,6 +430,7 @@ function renderQ(){
   $('prev').style.visibility = idx>0 ? 'visible' : 'hidden';
   $('eq').classList.toggle('eq-sm', q.a>=100 || q.b>=100);   // 3けたは 式を 小さく
   $('eq').innerHTML = eqHTML(q);
+  setupMemo(q.level);                                        // 多けたレベルで 手書きメモを 出す
   const answered = !!answers[idx];
   setKeypadDisabled(answered);
   if(answered) showFeedback(answers[idx].correct);
@@ -523,6 +563,8 @@ document.addEventListener('keydown', e => {
 $('keypad').querySelectorAll('button[data-d]').forEach(b => b.onclick = ()=> pressDigit(b.dataset.d));
 $('kClear').onclick = pressClear;
 $('kEnter').onclick = pressEnter;
+$('memoClear').onclick = memoClear;
+window.addEventListener('resize', ()=>{ if($('memo').style.display==='block') memoResize(); });
 $('startBtn').onclick = start;
 $('next').onclick = next;
 $('prev').onclick = prev;
