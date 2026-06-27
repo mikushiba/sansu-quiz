@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>さんすうクイズ</title>
+<meta name="description" content="小学1〜2年生むけの さんすうクイズ集。たし算・ひき算を テンキーで こたえる自動生成クイズ。図鑑・称号・メダルで たのしく れんしゅう。">
+<meta name="theme-color" content="#ff8a3d">
+<!-- 共有スタイル（全アプリ共通の見た目／漢字クイズと同じデザイン） -->
+<link rel="stylesheet" href="shared/sansu-ui.css?v=202606270000">
+<style>
+  a.mode-btn{display:block; text-decoration:none;}
+  .portal-emoji{font-size:1.3rem; margin-right:6px;}
+  a.mode-btn.locked{opacity:.5; filter:grayscale(.5);}
+  .adv-head{font-size:.82rem; color:#9a7b5e; text-align:center; margin:16px 0 8px; font-weight:700;}
+  .lockmsg{font-size:.84rem; color:#c46a23; text-align:center; margin:6px 4px 0; font-weight:700; line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>さんすうクイズ</h1>
+  <div class="sub">― あそびたい クイズを えらぼう ―</div>
+
+  <div class="card">
+    <div class="modes">
+      <a class="mode-btn m1" href="tashizan/index.html">
+        <span class="portal-emoji">➕</span>たし算クイズ
+        <small>テンキーで こたえる／くり上がりも</small>
+      </a>
+    </div>
+
+    <div class="adv-head">― これから ふえる クイズ（じゅんびちゅう） ―</div>
+    <div class="modes">
+      <a class="mode-btn m2 adv locked" href="#">
+        <span class="lk">🔜 </span><span class="portal-emoji">➖</span>ひき算クイズ
+        <small>くり下がりも／テンキーで こたえる</small>
+      </a>
+      <a class="mode-btn m3 adv locked" href="#">
+        <span class="lk">🔜 </span><span class="portal-emoji">🔀</span>たし算ひき算 ミックス
+        <small>ランダムに 出るよ</small>
+      </a>
+      <a class="mode-btn m4 adv locked" href="#">
+        <span class="lk">🔜 </span><span class="portal-emoji">⏱️</span>タイムアタック
+        <small>はやさに ちょうせん</small>
+      </a>
+    </div>
+    <div class="lockmsg">あたらしい クイズは これから ふえます！</div>
+  </div>
+
+</div>
+<script>
+/* じゅんび中の クイズは おさない（リンクを止める） */
+document.querySelectorAll('a.mode-btn.adv').forEach(a => {
+  a.addEventListener('click', e => e.preventDefault());
+});
+</script>
+</body>
+</html>

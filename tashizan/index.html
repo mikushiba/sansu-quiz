@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>たし算クイズ</title>
+<meta name="description" content="たし算を テンキーで こたえるクイズ。10までの たしざん／くり上がり／20までミックス。図鑑・称号・メダルで たのしく れんしゅう。">
+<meta name="theme-color" content="#ff8a3d">
+<!-- 共有スタイル（さんすうクイズ共通の見た目） -->
+<link rel="stylesheet" href="../shared/sansu-ui.css?v=202606270000">
+<style>
+  /* たし算アプリ固有の追加分だけ */
+  #lsel{display:grid; grid-template-columns:1fr; gap:8px;}
+  #lsel button{padding:13px 10px; font-size:1rem; text-align:left; line-height:1.3;}
+  #lsel button small{display:block; font-size:.76rem; font-weight:400; color:#9a7b5e; margin-top:2px;}
+  #lsel button.active small{color:#c46a23;}
+  .start{margin-top:18px; width:100%; border:none; border-radius:16px; padding:16px;
+         font-size:1.15rem; font-weight:700; color:#fff; background:var(--accent);
+         cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .start:active{transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .help-list{font-size:.92rem; line-height:1.9; color:#5a4a3a; padding-left:1.2em; margin:6px 0;}
+  .help-list b{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="toplink" href="../index.html">← さんすうクイズ トップへ</a>
+  <h1>たし算クイズ</h1>
+  <div class="sub">― テンキーで こたえを いれよう ―</div>
+
+  <!-- ホーム -->
+  <div id="home" class="card">
+    <div class="topRow">
+      <button class="topBtn" id="openHelp" type="button">❓ あそびかた</button>
+      <button class="topBtn" id="soundToggle" type="button">🔊 おと ON</button>
+    </div>
+    <div class="buddy" id="buddy">
+      <div class="bi" id="buddyIcon">🥚</div>
+      <div class="bb">
+        <div class="bn" id="buddyName">けいさん みならい</div>
+        <div class="bc" id="buddyCoin">これまで せいかい 0問</div>
+        <div class="bbar"><i id="buddyBar"></i></div>
+        <div class="bnext" id="buddyNext"></div>
+      </div>
+    </div>
+    <button class="dailyBtn" id="openDaily" type="button">📅 きょうの チャレンジ<span id="dailyInfo"></span></button>
+    <div class="gradeSel">
+      <div class="gradeLabel">レベルを えらぶ</div>
+      <div class="seg" id="lsel"></div>
+    </div>
+    <div class="gradeSel">
+      <div class="gradeLabel">もんだいの数（かず）</div>
+      <div class="seg" id="countSeg"><!-- 共通モジュール SansuCore.renderCountSeg で描画 --></div>
+    </div>
+    <div class="modes">
+      <button class="mode-btn m1" id="startBtn">
+        ➕ はじめる（たし算）
+        <small>テンキーで こたえを いれてね</small>
+      </button>
+    </div>
+    <button class="dailyBtn" id="openReview" type="button" style="background:linear-gradient(135deg,#7bc47b,#3da35a);margin-top:14px;">🔁 まちがい ふくしゅう<span id="reviewInfo"></span></button>
+    <div class="collbar">
+      <button id="openDex" type="button">📖 カードずかん</button>
+      <button id="openMedals" type="button">🏅 メダル</button>
+    </div>
+    <div class="saveBar">
+      <button id="exportSave" type="button">💾 きろくを ほぞん</button>
+      <label class="impBtn" for="importFile">📂 きろくを よみこむ</label>
+      <input id="importFile" type="file" accept="application/json,.json" hidden>
+    </div>
+    <a class="applink" href="../index.html">← さんすうクイズ トップへ</a>
+  </div>
+
+  <!-- あそびかた -->
+  <div id="help" class="card" style="display:none;">
+    <button class="backBtn" id="helpBack">← もどる</button>
+    <h2 style="margin-top:4px;">あそびかた</h2>
+    <ul class="help-list">
+      <li>大きな <b>たし算</b>が 出るよ。（れい：7 ＋ 8 ＝ □）</li>
+      <li><b>テンキー</b>で こたえの 数字を いれて、<b>「こたえる」</b>を おそう。</li>
+      <li>まちがえたら、<b>10の かたまり</b>の ヒントが 出るよ。</li>
+      <li>つづけて 正かいすると <b>🔥コンボ</b>！</li>
+      <li>正かいした たし算は <b>カードずかん</b>に たまるよ（3回で ★）。</li>
+      <li>ぜんぶ おわると <b>てんすう</b>と ⭐が 出るよ。</li>
+      <li>まちがえた問題は、最後に「<b>まちがえた問題だけ もう一回</b>」で ふくしゅうできる。</li>
+    </ul>
+    <button class="again" id="helpStart" style="margin-top:8px;">とじる</button>
+  </div>
+
+  <!-- 出題 -->
+  <div id="quiz" class="card" style="display:none;">
+    <button class="navBtn" id="prev">← 前へ</button>
+    <button class="homeBtn" id="quizHome">🏠 HOME</button>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="meta"><span id="count"></span><span id="combo"></span><span id="score"></span></div>
+    <span class="tag" id="tag"></span>
+    <div class="eq" id="eq"></div>
+    <div class="keypad" id="keypad">
+      <button type="button" data-d="1">1</button>
+      <button type="button" data-d="2">2</button>
+      <button type="button" data-d="3">3</button>
+      <button type="button" data-d="4">4</button>
+      <button type="button" data-d="5">5</button>
+      <button type="button" data-d="6">6</button>
+      <button type="button" data-d="7">7</button>
+      <button type="button" data-d="8">8</button>
+      <button type="button" data-d="9">9</button>
+      <button type="button" class="k-clear" id="kClear">けす</button>
+      <button type="button" data-d="0">0</button>
+      <button type="button" class="k-enter" id="kEnter">こたえる</button>
+    </div>
+    <div class="feedback" id="feedback">
+      <div class="fb-head" id="fbHead"></div>
+      <div class="fb-line" id="fbBody"></div>
+      <div class="fb-hint" id="fbHint" style="display:none;"></div>
+      <button class="next" id="next">つぎへ →</button>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <div id="result" class="card result" style="display:none;">
+    <div class="stars" id="stars"></div>
+    <div class="score" id="finalScore"></div>
+    <div class="comboBest" id="comboBest"></div>
+    <div id="comment" style="margin-bottom:12px;"></div>
+    <div class="earned" id="earned" style="display:none;"></div>
+    <div class="review" id="review"></div>
+    <button class="again retryWrong" id="retryWrong" style="display:none;">まちがえた問題だけ もう一回</button>
+    <button class="again" id="retry">もう一回</button>
+    <button class="again home" id="back">さいしょの画面</button>
+  </div>
+
+  <!-- カードずかん -->
+  <div id="dex" class="card" style="display:none;">
+    <button class="backBtn" id="dexBack">← もどる</button>
+    <div class="collHead"><h2>📖 カードずかん</h2><span class="cnt" id="dexCnt"></span></div>
+    <div style="font-size:.8rem;color:#9a7b5e;margin-bottom:10px;">たし算に 正かいすると カードが ふえるよ。3かい 正かいで ★マスター！</div>
+    <div class="dexGrid" id="dexGrid"></div>
+  </div>
+
+  <!-- メダル -->
+  <div id="medals" class="card" style="display:none;">
+    <button class="backBtn" id="medalsBack">← もどる</button>
+    <div class="collHead"><h2>🏅 メダル</h2><span class="cnt" id="medalsCnt"></span></div>
+    <div class="medalList" id="medalList"></div>
+  </div>
+
+</div>
+
+<!-- 共有 進捗エンジン（図鑑・称号・メダル＝算数クイズ全アプリ合算） -->
+<script src="../shared/sansu-core.js?v=202606270000"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* ===== レベル（学年セレクタの 算数版） ===== */
+const LEVELS = [
+  { v:'e10',   label:'10までの たしざん', desc:'こたえが 10までの やさしい たし算', test:(a,b)=> (a+b)<=10 },
+  { v:'carry', label:'くり上がり たし算',  desc:'こたえが 11〜18／10の かたまりで かんがえる', test:(a,b)=> (a+b)>=11 },
+  { v:'mix20', label:'20まで ミックス',    desc:'やさしい〜くり上がり まで ぜんぶ', test:(a,b)=> true },
+];
+function levelDef(v){ return LEVELS.find(l => l.v===v) || LEVELS[1]; }
+// レベルごとの たし算ペア（a<=b の組。交かんは 図鑑では同じあつかい）
+function pairsForLevel(v){
+  const def = levelDef(v), out = [];
+  for(let a=1;a<=9;a++) for(let b=a;b<=9;b++){ if(def.test(a,b)) out.push([a,b]); }
+  return out;
+}
+
+/* ===== 状態 ===== */
+let level = 'carry';      // 初期レベル＝くり上がり
+let count = 10;           // 問題数（'all'＝ぜんぶ）
+let deck = [], answers = [], idx = 0;
+let typed = '';           // テンキーで 入力ちゅうの 数字
+let combo = 0, sessionMaxCombo = 0;
+let wrongQs = [];
+let isDaily = false;
+
+// 共有 store に たし算用の領域（復習・デイリー）を用意（他アプリのフィールドは保持）
+const store = SansuCore.store;
+store.tashizanWrong = store.tashizanWrong || {};                          // { 'a+b': true } まちがえた問題
+store.tashizanDaily = store.tashizanDaily || { streak:0, bestStreak:0, lastDay:null };
+// メダルの「連続日数」は store.daily.bestStreak を見るので、たし算のデイリーをそこにも反映
+store.daily = store.daily || { bestStreak:0 };
+
+/* ===== 出題の組み立て ===== */
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// 1ペアから 問題オブジェクト（出す順は a,b をランダムに入れかえ＝7+8 / 8+7 両方出る）
+function makeQuestion([a,b]){
+  const flip = Math.random() < 0.5;
+  const x = flip ? b : a, y = flip ? a : b;
+  return { a:x, b:y, key:SansuCore.factKey(a,b), answer:a+b, level };
+}
+// 日付シードの決定的シャッフル（同じ日は 何回でも 同じ10問）
+function todayIndex(){ const d=new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset()*60000)/86400000); }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function seededShuffle(arr, seed){ const r=mulberry32(seed), a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// 10の かたまり ヒント（くり上がり用）
+function makeTenHint(a,b){
+  const big=Math.max(a,b), small=Math.min(a,b);
+  if(big>=10 || (a+b)<11) return '';
+  const need=10-big, rem=small-need;
+  if(need<=0 || rem<0) return '';
+  return `10の かたまりで かんがえよう：<b>${big}</b>に <b>${need}</b>を たして 10、のこり <b>${rem}</b>で <b>${a+b}</b>！`;
+}
+
+/* ===== 音（Web Audio：ファイル不要・オフラインでも鳴る） ===== */
+let soundOn = (localStorage.getItem('tashizanSoundOff') !== '1');
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; } }
+  if(audioCtx && audioCtx.state==='suspended'){ try{ audioCtx.resume(); }catch(e){} }
+  return audioCtx;
+}
+function tone(freq, startAt, dur, type='sine', vol=0.2){
+  const ctx = getCtx(); if(!ctx) return;
+  const t0 = ctx.currentTime + startAt;
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type=type; osc.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(vol, t0+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t0); osc.stop(t0+dur+0.03);
+}
+function playSound(name){
+  if(!soundOn) return; const ctx=getCtx(); if(!ctx) return;
+  if(name==='correct'){
+    tone(1318,0,0.55,'sine',0.26); tone(2637,0,0.30,'sine',0.08);
+    tone(1047,0.18,0.70,'sine',0.26); tone(2093,0.18,0.35,'sine',0.08);
+  } else if(name==='wrong'){
+    tone(233,0,0.20,'sawtooth',0.11); tone(220,0,0.20,'sawtooth',0.11);
+    tone(220,0.26,0.55,'sawtooth',0.11); tone(207,0.26,0.55,'sawtooth',0.11);
+  }
+}
+function refreshSoundBtn(){ $('soundToggle').textContent = soundOn ? '🔊 おと ON' : '🔇 おと OFF'; }
+
+/* ===== 画面きりかえ ===== */
+function showOnly(id){ for(const s of ['home','help','quiz','result','dex','medals']) $(s).style.display = (s===id)?'block':'none'; }
+
+/* ===== 育成系（共有 SansuCore：図鑑・称号・メダル） ===== */
+function refreshBuddy(){
+  SansuCore.renderBuddy({ icon:$('buddyIcon'), name:$('buddyName'), coin:$('buddyCoin'), bar:$('buddyBar'), next:$('buddyNext') });
+}
+function refreshHome(){
+  refreshBuddy();
+  const dy = store.tashizanDaily, ti = todayIndex();
+  let info = '';
+  if((dy.streak||0)>0 && (dy.lastDay===ti || dy.lastDay===ti-1)) info += `🔥${dy.streak}日れんぞく　`;
+  info += (dy.lastDay===ti) ? 'きょうは クリア✓' : 'まいにち 10もん！';
+  $('dailyInfo').textContent = ' ' + info;
+  const rc = reviewPairs().length;
+  $('reviewInfo').textContent = rc ? ` のこり ${rc}問` : ' まちがいは ありません';
+}
+function goHome(){ refreshHome(); showOnly('home'); }
+function openDex(){ $('dexCnt').textContent = SansuCore.dexHead(); $('dexGrid').innerHTML = SansuCore.dexGridHTML(); showOnly('dex'); }
+function openMedals(){ $('medalsCnt').textContent = SansuCore.medalsHead(); $('medalList').innerHTML = SansuCore.medalsGridHTML(); showOnly('medals'); }
+
+/* ===== ホーム：レベルセレクタ ===== */
+function renderLevelSel(){
+  const seg = $('lsel'); seg.innerHTML = '';
+  for(const l of LEVELS){
+    const b = document.createElement('button');
+    b.innerHTML = l.label + '<small>' + l.desc + '</small>';
+    if(l.v === level) b.classList.add('active');
+    b.onclick = ()=>{ level = l.v; renderLevelSel(); };
+    seg.appendChild(b);
+  }
+}
+// 問題数セレクタ（共通モジュール）
+SansuCore.renderCountSeg($('countSeg'), '10', v => { count = (v==='all') ? 'all' : +v; });
+
+/* ===== 出題ループ ===== */
+function start(){
+  let pool = shuffle(pairsForLevel(level));
+  const limit = (count==='all') ? pool.length : count;
+  let picked = pool.slice(0, limit);
+  // 足りない分は くりかえして うめる（同じペアでも 出す順はランダムなので 単調になりにくい）
+  while(picked.length < limit && pool.length){ picked = picked.concat(shuffle(pool)); }
+  picked = picked.slice(0, limit);
+  startWithDeck(picked.map(makeQuestion));
+}
+function startDaily(){
+  const pool = pairsForLevel('mix20');                // デイリーは ミックスから
+  const deckP = seededShuffle(pool, todayIndex()).slice(0, 10);
+  startWithDeck(deckP.map(makeQuestion), true);
+}
+function updateDailyStreak(){
+  const dy = store.tashizanDaily, ti = todayIndex();
+  if(dy.lastDay !== ti){
+    dy.streak = (dy.lastDay === ti-1) ? (dy.streak||0)+1 : 1;
+    dy.lastDay = ti;
+    dy.bestStreak = Math.max(dy.bestStreak||0, dy.streak);
+    store.daily.bestStreak = Math.max(store.daily.bestStreak||0, dy.bestStreak);   // メダル判定用
+    SansuCore.noteDaily();
+    SansuCore.save();
+  }
+}
+// まちがい ふくしゅう
+const reviewPairs = ()=> Object.keys(store.tashizanWrong).map(k => k.split('+').map(Number));
+function startReview(){
+  let pool = reviewPairs();
+  if(pool.length === 0){ alert('ふくしゅうする問題は ありません。\nまちがえた問題が ここに たまります。'); return; }
+  pool = shuffle(pool); if(pool.length>20) pool = pool.slice(0,20);
+  startWithDeck(pool.map(makeQuestion));
+}
+function startWithDeck(qs, daily){
+  isDaily = !!daily;
+  deck = qs; answers = new Array(deck.length); idx = 0;
+  typed = ''; combo = 0; sessionMaxCombo = 0;
+  showOnly('quiz'); renderQ();
+}
+
+/* ===== 1問の描画 ===== */
+function eqHTML(q, state){
+  let ansHTML;
+  const ans = answers[idx];
+  if(ans){
+    const cls = ans.correct ? 'ok' : 'ng';
+    ansHTML = `<span class="ans ${cls}">${ans.typed}</span>`;
+  } else if(typed){
+    ansHTML = `<span class="ans">${typed}</span>`;
+  } else {
+    ansHTML = `<span class="ans empty">？</span>`;
+  }
+  return `${q.a} <span class="op">＋</span> ${q.b} <span class="op">＝</span> ${ansHTML}`;
+}
+function renderQ(){
+  const q = deck[idx];
+  typed = '';
+  $('prog').style.width = (idx/deck.length*100)+'%';
+  $('count').textContent = `問題 ${idx+1} / ${deck.length}`;
+  $('combo').textContent = combo>=2 ? `🔥 ${combo}` : '';
+  $('score').textContent = `正かい ${scoreCount()}`;
+  $('tag').textContent = levelDef(q.level).label;
+  $('prev').style.visibility = idx>0 ? 'visible' : 'hidden';
+  $('eq').innerHTML = eqHTML(q);
+  const answered = !!answers[idx];
+  setKeypadDisabled(answered);
+  if(answered) showFeedback(answers[idx].correct);
+  else $('feedback').classList.remove('show','good','bad');
+}
+function setKeypadDisabled(disabled){
+  $('keypad').querySelectorAll('button').forEach(b => b.disabled = disabled);
+  if(!disabled) $('kEnter').disabled = (typed==='');
+}
+
+/* ===== テンキー入力 ===== */
+function pressDigit(d){
+  if(answers[idx]) return;
+  if(typed.length >= 2) return;                  // こたえは 最大2けた（〜18）
+  if(typed==='' && d==='0') return;              // 先頭の 0 は むし
+  typed += d;
+  $('eq').innerHTML = eqHTML(deck[idx]);
+  $('kEnter').disabled = (typed==='');
+}
+function pressClear(){
+  if(answers[idx]) return;
+  typed = '';
+  $('eq').innerHTML = eqHTML(deck[idx]);
+  $('kEnter').disabled = true;
+}
+function pressEnter(){
+  if(answers[idx] || typed==='') return;
+  submit(parseInt(typed,10));
+}
+function submit(val){
+  const q = deck[idx];
+  const ok = (val === q.answer);
+  answers[idx] = { typed: val, correct: ok };
+  if(ok){
+    combo++; sessionMaxCombo = Math.max(sessionMaxCombo, combo);
+    if(store.tashizanWrong[q.key]){ delete store.tashizanWrong[q.key]; SansuCore.noteComeback(); }  // 復習で克服
+    SansuCore.recordFact(q.a, q.b); SansuCore.bumpCorrect(); SansuCore.bumpApp('tashizan'); SansuCore.noteCombo(combo); SansuCore.save();
+  } else {
+    combo = 0;
+    store.tashizanWrong[q.key] = true; SansuCore.save();
+  }
+  $('combo').textContent = combo>=2 ? `🔥 ${combo}` : '';
+  $('score').textContent = `正かい ${scoreCount()}`;
+  $('eq').innerHTML = eqHTML(q);
+  setKeypadDisabled(true);
+  playSound(ok ? 'correct' : 'wrong');
+  showFeedback(ok);
+}
+
+function showFeedback(ok){
+  const q = deck[idx];
+  const fb = $('feedback');
+  fb.classList.add('show'); fb.classList.toggle('good', ok); fb.classList.toggle('bad', !ok);
+  $('fbHead').textContent = ok ? '⭕ せいかい！' : '❌ おしい！　こたえは ' + q.answer;
+  $('fbBody').innerHTML = `<b style="color:var(--accent2);font-size:1.2rem;">${q.a} ＋ ${q.b} ＝ ${q.answer}</b>`;
+  const hint = makeTenHint(q.a, q.b);
+  const hintEl = $('fbHint');
+  if(!ok && hint){ hintEl.style.display='block'; hintEl.innerHTML = hint; }
+  else { hintEl.style.display='none'; }
+  $('next').textContent = (idx >= deck.length-1) ? 'けっかを見る →' : 'つぎへ →';
+}
+
+const scoreCount = ()=> answers.filter(a => a && a.correct).length;
+
+function next(){
+  if(!answers[idx]) return;
+  if(idx >= deck.length-1) return showResult();
+  idx++; renderQ();
+}
+function prev(){ if(idx>0){ idx--; renderQ(); } }
+
+function showResult(){
+  showOnly('result');
+  $('prog').style.width = '100%';
+  const total = deck.length, correct = scoreCount();
+  $('finalScore').textContent = `${correct} / ${total} もん せいかい`;
+  const rate = correct/total;
+  const nStar = rate===1?3 : rate>=0.7?2 : rate>=0.4?1 : 0;
+  $('stars').textContent = '⭐'.repeat(nStar) + '☆'.repeat(3-nStar);
+  $('comment').textContent =
+    rate===1 ? 'ぜんもん せいかい！すごい！' :
+    rate>=0.7 ? 'よくできました！' :
+    rate>=0.4 ? 'もう少し！もう一回やってみよう' :
+    'だいじょうぶ、くりかえせば できるよ！';
+  $('comboBest').textContent = sessionMaxCombo>=2 ? `さい高コンボ：🔥 ${sessionMaxCombo}れんぞく` : '';
+
+  SansuCore.notePlay();
+  if(rate===1) SansuCore.notePerfect();
+  SansuCore.noteCombo(sessionMaxCombo);
+  if(isDaily) updateDailyStreak();
+  SansuCore.save();
+  const tcAfter = SansuCore.store.totalCorrect||0, tcBefore = tcAfter - correct;
+  const rankUp = SansuCore.rankStage(tcAfter) > SansuCore.rankStage(tcBefore);
+  const newly = SansuCore.checkMedals();
+  const em = $('earned');
+  const newRank = SansuCore.STAGES[SansuCore.rankStage(tcAfter)];
+  const evo = rankUp ? `✨ 称号アップ！ ${newRank.icon}「${newRank.title}」に なった！　` : '';
+  if(evo || newly.length){
+    em.style.display = 'block';
+    em.innerHTML = evo + (newly.length ? '🏅 あたらしいメダル：' + newly.map(m=>`${m.icon}${m.name}`).join('　') : '');
+  } else { em.style.display = 'none'; }
+
+  // まちがえた問題の振り返り
+  const wrong = deck.filter((q,i)=> answers[i] && !answers[i].correct);
+  wrongQs = wrong.map(q => [Math.min(q.a,q.b), Math.max(q.a,q.b)]);
+  const rv = $('review');
+  if(wrong.length){
+    rv.style.display = 'block';
+    rv.innerHTML = `<div class="rv-h">まちがえた問題（${wrong.length}）</div>` +
+      wrong.map(q => `<div class="rv-i"><b>${q.a} ＋ ${q.b}</b> ＝ <b>${q.answer}</b></div>`).join('');
+    $('retryWrong').style.display = 'inline-block';
+  } else {
+    rv.style.display = 'none';
+    $('retryWrong').style.display = 'none';
+  }
+}
+
+/* ===== 物理キーボード（PCでも あそべる） ===== */
+document.addEventListener('keydown', e => {
+  if($('quiz').style.display !== 'block') return;
+  if(e.key >= '0' && e.key <= '9'){ pressDigit(e.key); e.preventDefault(); }
+  else if(e.key === 'Backspace'){ pressClear(); e.preventDefault(); }
+  else if(e.key === 'Enter'){
+    if(answers[idx]) next(); else pressEnter();
+    e.preventDefault();
+  }
+});
+
+/* ===== 初期化・イベント ===== */
+$('keypad').querySelectorAll('button[data-d]').forEach(b => b.onclick = ()=> pressDigit(b.dataset.d));
+$('kClear').onclick = pressClear;
+$('kEnter').onclick = pressEnter;
+$('startBtn').onclick = start;
+$('next').onclick = next;
+$('prev').onclick = prev;
+$('quizHome').onclick = goHome;
+$('retry').onclick = start;
+$('retryWrong').onclick = ()=> startWithDeck(wrongQs.map(makeQuestion));
+$('back').onclick = goHome;
+$('openHelp').onclick = ()=> showOnly('help');
+$('helpBack').onclick = goHome;
+$('helpStart').onclick = goHome;
+$('openDex').onclick = openDex;
+$('openMedals').onclick = openMedals;
+$('dexBack').onclick = goHome;
+$('medalsBack').onclick = goHome;
+$('openDaily').onclick = startDaily;
+$('openReview').onclick = startReview;
+$('exportSave').onclick = ()=> SansuCore.exportSave('さんすうクイズ-きろく.json');
+$('importFile').onchange = (e)=>{ const f = e.target.files[0]; if(f) SansuCore.importSave(f); e.target.value=''; };
+$('soundToggle').onclick = ()=>{
+  soundOn = !soundOn;
+  localStorage.setItem('tashizanSoundOff', soundOn ? '0' : '1');
+  refreshSoundBtn();
+  if(soundOn) playSound('correct');
+};
+renderLevelSel();
+refreshSoundBtn();
+refreshHome();
+</script>
+</body>
+</html>
