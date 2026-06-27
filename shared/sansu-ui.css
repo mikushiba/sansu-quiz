@@ -269,7 +269,7 @@
     border-radius:99px; padding:5px 12px; font-size:.76rem; font-weight:700; cursor:pointer;}
   .memo-head .mclear:active{transform:translateY(1px);}
   .memo canvas{
-    display:block; width:100%; height:200px; border:2px dashed var(--line); border-radius:14px;
-    background:repeating-linear-gradient(#fffdf9, #fffdf9 31px, #f1e2d0 31px, #f1e2d0 32px);
+    display:block; width:100%; height:340px; border:2px dashed var(--line); border-radius:14px;
+    background:repeating-linear-gradient(#fffdf9, #fffdf9 37px, #f1e2d0 37px, #f1e2d0 38px);
     touch-action:none; cursor:crosshair;
   }
