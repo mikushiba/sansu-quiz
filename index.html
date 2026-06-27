@@ -4,54 +4,89 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>さんすうクイズ</title>
-<meta name="description" content="小学1〜2年生むけの さんすうクイズ集。たし算・ひき算を テンキーで こたえる自動生成クイズ。図鑑・称号・メダルで たのしく れんしゅう。">
+<meta name="description" content="小学1〜6年生むけの さんすうクイズ集。学年ごとに たし算・ひき算・かけ算・わり算などの 計算クイズを えらべる。テンキー入力・図鑑・称号・メダルつき。">
 <meta name="theme-color" content="#ff8a3d">
-<!-- 共有スタイル（全アプリ共通の見た目／漢字クイズと同じデザイン） -->
+<!-- 共有スタイル（全アプリ共通の見た目） -->
 <link rel="stylesheet" href="shared/sansu-ui.css?v=202606270400">
 <style>
   a.mode-btn{display:block; text-decoration:none;}
-  .portal-emoji{font-size:1.3rem; margin-right:6px;}
-  a.mode-btn.locked{opacity:.5; filter:grayscale(.5);}
-  .adv-head{font-size:.82rem; color:#9a7b5e; text-align:center; margin:16px 0 8px; font-weight:700;}
-  .lockmsg{font-size:.84rem; color:#c46a23; text-align:center; margin:6px 4px 0; font-weight:700; line-height:1.8;}
+  a.mode-btn.locked{opacity:.55; filter:grayscale(.4);}
+  .portal-emoji{font-size:1.2rem; margin-right:6px;}
+  .lk{font-size:.7rem; font-weight:800; vertical-align:middle;}
+  /* 学年の見出し */
+  .grade-head{display:flex; align-items:center; gap:8px; margin:22px 2px 10px; font-weight:800;}
+  .grade-head:first-of-type{margin-top:6px;}
+  .grade-head .gnum{display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; font-size:.95rem;}
+  .grade-head .gtxt{font-size:1.05rem; color:#5a3e28;}
+  .grade-head .gsub{font-size:.74rem; color:#9a7b5e; font-weight:700;}
+  .modes{margin-bottom:4px;}
+  .legend{font-size:.78rem; color:#9a7b5e; text-align:center; margin:14px 4px 0; line-height:1.7;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <h1>さんすうクイズ</h1>
-  <div class="sub">― あそびたい クイズを えらぼう ―</div>
+  <div class="sub">― 学年（がくねん）を えらんで あそぼう ―</div>
 
   <div class="card">
+
+    <!-- 1年生 -->
+    <div class="grade-head"><span class="gnum">1</span><span class="gtxt">1年生</span><span class="gsub">たし算・ひき算（くり上がり・くり下がり）</span></div>
     <div class="modes">
-      <a class="mode-btn m1" href="tashizan/index.html">
-        <span class="portal-emoji">➕</span>たし算クイズ
-        <small>テンキーで こたえる／くり上がりも</small>
-      </a>
+      <a class="mode-btn m1" href="tashizan/index.html?lv=carry1"><span class="portal-emoji">➕</span>たしざん<small>10まで／くり上がり／20まで</small></a>
+      <a class="mode-btn m2" href="hikizan/index.html?lv=sb"><span class="portal-emoji">➖</span>ひきざん<small>くり下がり なし／あり／20まで</small></a>
     </div>
 
-    <div class="adv-head">― これから ふえる クイズ（じゅんびちゅう） ―</div>
+    <!-- 2年生 -->
+    <div class="grade-head"><span class="gnum">2</span><span class="gtxt">2年生</span><span class="gsub">2けたの ひっ算・九九</span></div>
     <div class="modes">
-      <a class="mode-btn m2 adv locked" href="#">
-        <span class="lk">🔜 </span><span class="portal-emoji">➖</span>ひき算クイズ
-        <small>くり下がりも／テンキーで こたえる</small>
-      </a>
-      <a class="mode-btn m3 adv locked" href="#">
-        <span class="lk">🔜 </span><span class="portal-emoji">🔀</span>たし算ひき算 ミックス
-        <small>ランダムに 出るよ</small>
-      </a>
-      <a class="mode-btn m4 adv locked" href="#">
-        <span class="lk">🔜 </span><span class="portal-emoji">⏱️</span>タイムアタック
-        <small>はやさに ちょうせん</small>
-      </a>
+      <a class="mode-btn m1" href="tashizan/index.html?lv=d2p1n"><span class="portal-emoji">➕</span>たし算の ひっ算（2けた）<small>くり上がり なし／あり</small></a>
+      <a class="mode-btn m2" href="hikizan/index.html?lv=d2m1n"><span class="portal-emoji">➖</span>ひき算の ひっ算（2けた）<small>くり下がり なし／あり</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">✖️</span>かけ算（九九）<small>2年生の 山ば！じゅんびちゅう</small></a>
     </div>
-    <div class="lockmsg">あたらしい クイズは これから ふえます！</div>
+
+    <!-- 3年生 -->
+    <div class="grade-head"><span class="gnum">3</span><span class="gtxt">3年生</span><span class="gsub">大きな数・かけ算筆算・わり算・小数分数</span></div>
+    <div class="modes">
+      <a class="mode-btn m1" href="tashizan/index.html?lv=d3p3"><span class="portal-emoji">➕</span>大きな たし算（3〜4けた）<small>3けた＋3けた</small></a>
+      <a class="mode-btn m2" href="hikizan/index.html?lv=d3m3"><span class="portal-emoji">➖</span>大きな ひき算（3〜4けた）<small>3けた−3けた</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">✖️</span>かけ算の ひっ算<small>2〜3けた×1〜2けた・じゅんびちゅう</small></a>
+      <a class="mode-btn m4 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">➗</span>わり算（あまり）<small>じゅんびちゅう</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🔢</span>小数・分数（はじめ）<small>じゅんびちゅう</small></a>
+    </div>
+
+    <!-- 4年生 -->
+    <div class="grade-head"><span class="gnum">4</span><span class="gtxt">4年生</span><span class="gsub">わり算の筆算・小数・分数の計算</span></div>
+    <div class="modes">
+      <a class="mode-btn m4 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">➗</span>わり算の ひっ算<small>÷1〜2けた・じゅんびちゅう</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🔢</span>小数の たし算ひき算・×÷整数<small>じゅんびちゅう</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🍰</span>分数（同分母の たし算ひき算）<small>じゅんびちゅう</small></a>
+    </div>
+
+    <!-- 5年生 -->
+    <div class="grade-head"><span class="gnum">5</span><span class="gtxt">5年生</span><span class="gsub">小数×÷小数・異分母分数・約数倍数</span></div>
+    <div class="modes">
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🔢</span>小数 × 小数・小数 ÷ 小数<small>じゅんびちゅう</small></a>
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🍰</span>分数（いぶんぼの たし算ひき算）<small>じゅんびちゅう</small></a>
+      <a class="mode-btn m4 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🧮</span>約数・倍数（公約数・公倍数）<small>じゅんびちゅう</small></a>
+    </div>
+
+    <!-- 6年生 -->
+    <div class="grade-head"><span class="gnum">6</span><span class="gtxt">6年生</span><span class="gsub">分数×÷分数・文字を使った式</span></div>
+    <div class="modes">
+      <a class="mode-btn m3 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🍰</span>分数 × 分数・分数 ÷ 分数<small>じゅんびちゅう</small></a>
+      <a class="mode-btn m4 locked" href="#"><span class="lk">🔜</span> <span class="portal-emoji">🔤</span>文字を使った式（a・x）<small>じゅんびちゅう</small></a>
+    </div>
+
+    <div class="legend">🔜＝じゅんびちゅう（これから ふえます）／図鑑・称号・メダルは 学年をまたいで そだつよ</div>
   </div>
 
 </div>
 <script>
 /* じゅんび中の クイズは おさない（リンクを止める） */
-document.querySelectorAll('a.mode-btn.adv').forEach(a => {
+document.querySelectorAll('a.mode-btn.locked').forEach(a => {
   a.addEventListener('click', e => e.preventDefault());
 });
 </script>
