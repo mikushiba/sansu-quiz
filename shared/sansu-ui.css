@@ -238,6 +238,8 @@
   .eq .ans.empty{color:#e0cdb6;}
   .eq .ans.ok{color:var(--ok); border-color:var(--ok);}
   .eq .ans.ng{color:var(--ng); border-color:var(--ng);}
+  /* 3けたなど 長い式は 小さめに（はみ出さないように） */
+  .eq.eq-sm{font-size:2.05rem; letter-spacing:0;}
 
   /* テンキー（3列：1-9／C 0 こたえる） */
   .keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px;}
